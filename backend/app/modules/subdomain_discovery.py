@@ -7,6 +7,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 from datetime import datetime, timezone
+from app.modules.dns_enrichment import enrich_subdomains
 
 
 def validate_domain(domain):
@@ -111,6 +112,28 @@ def discover_subdomains(domain):
             "All subdomain sources failed. " + " | ".join(errors)
         )
 
+    # DNS enrichment is performed separately from passive discovery.
+    # A DNS enrichment failure must not discard discovered subdomains.
+    try:
+        enrichment = enrich_subdomains(domain, sorted(all_subdomains))
+    except Exception as error:
+        enrichment = {
+            "assets": [],
+            "total_checked": 0,
+            "total_skipped": len(all_subdomains),
+            "total_resolved": 0,
+            "total_unresolved": 0,
+            "cname_intelligence": {"total_with_cname": 0},
+            "wildcard_dns": {
+                "detected": False,
+                "status": "lookup_failed",
+                "test_hostname": None,
+                "records": [],
+                "error": str(error)[:200],
+                "note": "Wildcard DNS could not be checked."
+            }
+        }
+
     return {
         "status": "success",
         "domain": domain,
@@ -118,6 +141,7 @@ def discover_subdomains(domain):
         "subdomains": sorted(all_subdomains),
         "sources": successful_sources,
         "source_errors": errors,
-        "collection_type": "passive",
+        **enrichment,
+        "collection_type": "passive_with_dns_queries",
         "checked_at": datetime.now(timezone.utc).isoformat()
     }

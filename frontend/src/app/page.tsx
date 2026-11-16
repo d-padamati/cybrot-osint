@@ -28,6 +28,20 @@ type ScanSummary = {
   total_modules: number;
   successful_modules: number;
   results: Record<string, ModuleResult>;
+  findings?: {
+    total_findings: number;
+    severity_summary: Record<string, number>;
+    findings: Array<{
+      id: string;
+      title: string;
+      severity: string;
+      category: string;
+      description: string;
+      evidence: unknown;
+      recommendation: string;
+    }>;
+    notes: string[];
+  };
 };
 
 type ScanResponse = {
@@ -556,6 +570,37 @@ async function openHistoryScan(scanId: number) {
                   );
                 })}
               </div>
+
+              {scanResult.results.findings && (
+                <div className="panel" style={{ marginTop: "18px" }}>
+                  <div className="panel-title">
+                    <h3>Potential Security Observations</h3>
+                    <span>
+                      {scanResult.results.findings.total_findings} OBSERVATIONS
+                    </span>
+                  </div>
+
+                  <div className="module-grid">
+                    {scanResult.results.findings.findings.map((finding) => (
+                      <div className="module-card" key={finding.id}>
+                        <span>{finding.title}</span>
+                        <small>
+                          {finding.severity} · {finding.category}
+                        </small>
+                        <small>{finding.description}</small>
+                        <small>
+                          Recommendation: {finding.recommendation}
+                        </small>
+                      </div>
+                    ))}
+                  </div>
+
+                  <small>
+                    Automated observations require manual validation.
+                    They are not confirmed vulnerabilities.
+                  </small>
+                </div>
+              )}
             </section>
           )}
 

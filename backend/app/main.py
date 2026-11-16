@@ -426,8 +426,69 @@ def generate_scan_report(scan_id: int):
 
             story.append(Spacer(1, 6))
 
+        findings_data = report_data.get("findings", {})
+        if not isinstance(findings_data, dict):
+            findings_data = {}
+
+        findings_list = findings_data.get("findings", [])
+        if not isinstance(findings_list, list):
+            findings_list = []
+
         story.append(Spacer(1, 10))
-        story.append(Paragraph("4. Report Notes", heading_style))
+        story.append(Paragraph(
+            "4. Potential Security Observations",
+            heading_style
+        ))
+
+        severity_summary = findings_data.get("severity_summary", {})
+        if isinstance(severity_summary, dict):
+            summary_text = " | ".join(
+                f"{escape(str(key))}: {int(value)}"
+                for key, value in severity_summary.items()
+                if isinstance(value, (int, float))
+            )
+            if summary_text:
+                story.append(Paragraph(summary_text, body_style))
+
+        story.append(Paragraph(
+            f"Total automated observations: {len(findings_list)}",
+            body_style
+        ))
+
+        for finding in findings_list:
+            if not isinstance(finding, dict):
+                continue
+
+            story.append(Paragraph(
+                escape(str(finding.get("title", "Untitled observation")))
+                + " - "
+                + escape(str(finding.get("severity", "Unrated"))),
+                styles["Heading3"]
+            ))
+
+            for field in ("category", "description", "evidence", "recommendation"):
+                value = finding.get(field)
+                if value is not None:
+                    if isinstance(value, (dict, list)):
+                        value = json.dumps(
+                            value, indent=2, ensure_ascii=True, default=str
+                        )
+                    story.append(Paragraph(
+                        f"<b>{escape(field.title())}:</b> "
+                        + escape(str(value)).replace("\\n", "<br/>"),
+                        body_style
+                    ))
+
+            story.append(Spacer(1, 6))
+
+        story.append(Paragraph(
+            "Automated observations require manual validation. "
+            "They are not confirmed vulnerabilities.",
+            body_style
+        ))
+
+        story.append(Spacer(1, 10))
+        story.append(Paragraph("5. Report Notes", heading_style))
         story.append(Paragraph(
             "This report contains results collected by the CYBROT OSINT "
             "passive intelligence modules. Results may be incomplete when "

@@ -1,0 +1,33 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python environments
+venv/
+.venv/
+**/venv/
+**/.venv/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+
+# Frontend dependencies and build
+node_modules/
+.next/
+out/
+
+# Databases and logs
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local generated evidence and reports
+/backend/cybrot_scan_*.pdf
+/backend/json

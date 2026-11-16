@@ -7,6 +7,7 @@ from app.modules.infrastructure import analyze_infrastructure
 from app.modules.security_headers import analyze_headers
 from app.modules.email_security import analyze_email_security
 from app.modules.threat_intelligence import run_threat_intelligence
+from app.modules.findings_engine import analyze_findings
 
 
 def run_scan(domain):
@@ -56,10 +57,31 @@ def run_scan(domain):
     else:
         overall_status = "failed"
 
+    try:
+        findings = analyze_findings(results)
+    except Exception as error:
+        findings = {
+            "status": "failed",
+            "total_findings": 0,
+            "severity_summary": {
+                "Critical": 0,
+                "High": 0,
+                "Medium": 0,
+                "Low": 0,
+                "Informational": 0,
+            },
+            "findings": [],
+            "notes": [
+                "Findings analysis could not be completed.",
+                str(error),
+            ],
+        }
+
     return {
         "domain": domain,
         "status": overall_status,
         "total_modules": len(modules),
         "successful_modules": successful,
-        "results": results
+        "results": results,
+        "findings": findings
     }
