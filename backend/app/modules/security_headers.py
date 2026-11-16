@@ -80,6 +80,7 @@ def analyze_headers(domain: str):
                 for key, value in response.headers.items()
             }
             status_code = response.status
+            final_url = response.geturl()
 
         results = {}
         for header in SECURITY_HEADERS:
@@ -91,7 +92,12 @@ def analyze_headers(domain: str):
             "status": "success",
             "domain": domain,
             "http_status": status_code,
+            "final_url": final_url,
             "headers": results,
+            "missing_headers": [
+                name for name, value in results.items()
+                if value is None or str(value).strip() == ""
+            ],
             "summary": {
                 "total_checked": len(SECURITY_HEADERS),
                 "present": present,

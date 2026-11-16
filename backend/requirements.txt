@@ -3,3 +3,4 @@ uvicorn[standard]
 sqlalchemy
 pydantic
 reportlab
+dnspython>=2.6,<3
